@@ -15,6 +15,31 @@ class HeroTestCase(TestCase):
         batman = Hero.objects.get(name='Batman')
         self.assertEqual(str(batman), 'Batman')
 
+    def test_hero_list_get(self):
+        response = self.client.get('/api/hero')
+        data = json.loads(response.content.decode())
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(data), 3)
+
+        heroes = {}
+        for hero in data:
+            heroes[hero['id']] = hero['name']
+        self.assertEqual(heroes[1], 'Superman')
+        self.assertEqual(heroes[2], 'Batman')
+        self.assertEqual(heroes[3], 'Joker')
+
+    def test_hero_list_post(self):
+        response = self.client.post('/api/hero', json.dumps({'name': 'foo'}), 'application/json')
+        self.assertEqual(response.status_code, 201)
+
+        response = self.client.get('/api/hero/4')
+        data = json.loads(response.content.decode())
+        self.assertEqual(data['name'], 'foo')
+
+    def test_hero_list_method_not_allowed(self):
+        response = self.client.put('/api/hero', json.dumps({'name': 'foo'}), 'application/json')
+        self.assertEqual(response.status_code, 405)
+
     def test_hero_detail_get(self):
         response = self.client.get('/api/hero/1')
         data = json.loads(response.content.decode())
